@@ -40,12 +40,11 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 withCredentials([file(credentialsId: KUBECONFIG_CRED_ID, variable: 'KUBECONFIG')]) {
-                    sh '''
-                        cd ContainerizedMicroservices
-                        kubectl --kubeconfig=$KUBECONFIG apply -f deployment.yaml
-                        kubectl --kubeconfig=$KUBECONFIG apply -f service.yaml
-                    '''
+                    sh """
+                    cd ContainerizedMicroservices && kubectl --kubeconfig=\$KUBECONFIG apply -f deployment.yaml --insecure-skip-tls-verify
+                    """
                 }
+
             }
         }
     }
