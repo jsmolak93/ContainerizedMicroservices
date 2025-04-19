@@ -13,7 +13,6 @@ pipeline {
                     sh '''
                         rm -rf ContainerizedMicroservices
                         git clone https://$GIT_USER:$GIT_PASS@github.com/jsmolak93/ContainerizedMicroservices.git
-                        cd ContainerizedMicroservices
                     '''
                 }
             }
@@ -31,22 +30,24 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 withDockerRegistry([credentialsId: 'dockerhub-credentials', url: '']) {
-                    sh 'docker push $DOCKER_IMAGE'
+                    sh '''
+                        docker push $DOCKER_IMAGE
+                    '''
                 }
             }
         }
 
-            stage('Deploy to Kubernetes') {
-        steps {
-            withCredentials([file(credentialsId: KUBECONFIG_CRED_ID, variable: 'KUBECONFIG')]) {
-                sh '''
-                    kubectl --kubeconfig=$KUBECONFIG apply -f deployment.yaml
-                    kubectl --kubeconfig=$KUBECONFIG apply -f service.yaml
-                '''
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: KUBECONFIG_CRED_ID, variable: 'KUBECONFIG')]) {
+                    sh '''
+                        cd ContainerizedMicroservices
+                        kubectl --kubeconfig=$KUBECONFIG apply -f deployment.yaml
+                        kubectl --kubeconfig=$KUBECONFIG apply -f service.yaml
+                    '''
+                }
             }
         }
-    }
-
     }
 
     post {
