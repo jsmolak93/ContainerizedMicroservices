@@ -67,9 +67,14 @@ public class SurveyController {
         repository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping("/hello")
-        public String hello() {
-            return "Hello from CI/CD pipeline! (Deployed via Jenkins)";
-        }
+    
+    @GetMapping("/survey")
+    public String getSurvey() {
+        System.out.println("Pipeline trigger test - SurveyController accessed");
+        return "Survey Page";
+        
+    }
 
 }
+
+
