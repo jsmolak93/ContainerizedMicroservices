@@ -1,32 +1,51 @@
 # Student Survey Microservices App - SWE 645 HW3
 
-This project is a Spring Boot-based microservices web application deployed using a CI/CD pipeline. The app supports full CRUD operations on survey data and integrates MySQL for persistence. The entire pipeline is containerized with Docker, deployed via Kubernetes using K3s, and automated with Jenkins.
+This project is a Spring Boot-based microservices web application deployed using a full CI/CD pipeline. The app supports full CRUD operations on student survey data and uses MySQL hosted on Amazon RDS for persistent storage. The application is containerized using Docker, deployed on a Rancher-managed RKE2 Kubernetes cluster, and automated with Jenkins.
 
 ---
 
 ##  Technologies Used
 
 - **Spring Boot** (Java 17)
-- **MySQL** (Amazon RDS)
+- **MySQL (Amazon RDS)**
 - **Docker**
-- **Kubernetes (K3s)**
-- **Jenkins**
-- **GitHub (Webhook-enabled)**
-- **Amazon EC2 (Jenkins + K3s nodes)**
+- **Rancher (managing RKE2 Kubernetes cluster)**
+- **Jenkins (CI/CD Automation)**
+- **DockerHub** (`jsmolak93/student-survey-app`)
+- **GitHub** (source control + webhook triggers)
+- **Amazon EC2** (separate instances for Jenkins and Rancher)
 - **Elastic IPs for public access**
 
 ---
 
-## CI/CD Pipeline
+## Public Access Points
 
-### Continuous Integration:
-- Code is pushed to GitHub
-- Jenkins automatically pulls changes, builds the JAR file with Maven, and packages it using Docker
+| Service     | Elastic IP       | Port(s)       | Description                     |
+|-------------|------------------|---------------|---------------------------------|
+| Rancher     | `54.159.65.185`  | 80 / 443      | Rancher UI (RKE2 cluster)       |
+| Jenkins     | `54.165.19.244`  | 8080          | Jenkins UI for CI/CD            |
+| Web App     | via NodePort     | 30036         | Spring Boot survey app access   |
 
-### Continuous Deployment:
-- Docker image is pushed to DockerHub: `jsmolak93/student-survey-app`
-- Jenkins applies the updated Kubernetes YAML via `kubectl`
-- K3s cluster redeploys the app with the latest image
+---
+
+## CI/CD Pipeline (Jenkins)
+
+- A webhook triggers Jenkins when code is pushed to GitHub.
+- Jenkins clones the repository using stored GitHub credentials.
+- Maven builds the JAR file.
+- Docker builds and pushes the image to DockerHub.
+- Jenkins uses `kubectl` with `kubeconfig` credentials to deploy the app to the Rancher-managed cluster.
+
+All stages are automated using a declarative Jenkins pipeline. This setup ensures that **any push to GitHub** will automatically trigger a **clean rebuild, push, and redeploy** of the application with zero manual intervention.
+
+---
+
+## Amazon RDS (MySQL)
+
+- Hosted in Amazon RDS (MySQL 8.0)
+- Used to persist user-submitted survey data across pods and deployments.
+- Connected via Spring Boot using JDBC.
+- Database configuration is handled in `application.properties`.
 
 ---
 
@@ -40,43 +59,8 @@ This project is a Spring Boot-based microservices web application deployed using
 | PUT    | `/surveys/{id}`   | Update an existing survey    |
 | DELETE | `/surveys/{id}`   | Delete a survey              |
 
-
-
 ---
 
-## Kubernetes Deployment
+## Summary
 
-```yaml
-# deployment.yaml (simplified)
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: student-survey-deployment
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: student-survey
-  template:
-    metadata:
-      labels:
-        app: student-survey
-    spec:
-      containers:
-      - name: survey-app
-        image: jsmolak93/student-survey-app:latest
-        ports:
-        - containerPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: student-survey-service
-spec:
-  type: NodePort
-  selector:
-    app: student-survey
-  ports:
-    - port: 80
-      targetPort: 8080
-      nodePort: 30036
+This assignment demonstrates full-stack DevOps and microservice deployment using modern cloud-native tools. The app was tested with real-time GitHub commits triggering Jenkins pipelines, which in turn rebuilt Docker images, pushed to DockerHub, and deployed on Rancher-managed Kubernetes infrastructure. **Elastic IPs were used to allow public web access**, and Amazon RDS ensured persistent database storage.
