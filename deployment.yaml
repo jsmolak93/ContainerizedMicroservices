@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: student-survey-deployment
+  name: springboot-deployment
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: student-survey
+      app: springboot-app
   template:
     metadata:
       labels:
-        app: student-survey
+        app: springboot-app
     spec:
       containers:
-      - name: student-survey
-        image: jsmolak93/student-survey-app:latest
+      - name: springboot-container
+        image: jsmolak93/springboot-app:latest
         ports:
         - containerPort: 8081
