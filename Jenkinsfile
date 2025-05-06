@@ -2,7 +2,7 @@ pipeline {
     agent any  
 
     environment {
-        DOCKER_IMAGE = "jsmolak93/student-survey-app:latest"
+        DOCKER_IMAGE = "jsmolak93/springboot-app:latest"
         KUBECONFIG_CRED_ID = "kubeconfig"
     }
 
